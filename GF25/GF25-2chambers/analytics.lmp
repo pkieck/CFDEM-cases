@@ -1,0 +1,45 @@
+variable zmin_A     equal 0.
+variable zmax_A     equal 0.25
+
+region chamber_A    block   INF       INF       &
+                            INF       INF       &
+                            ${zmin_A} ${zmax_A}
+
+
+variable zmin_B     equal 0.25
+variable zmax_B     equal 0.5
+
+region   chamber_B  block   INF       INF       &
+                            INF       INF       &
+                            ${zmin_B} ${zmax_B}
+
+
+variable mass_A     equal mass(all,chamber_A)
+variable mass_B     equal mass(all,chamber_B)
+
+fix                 origin   all property/atom origin scalar yes no no 0.
+run                 0
+
+#set                 region chamber_A property/atom origin 1.
+#set                 region chamber_B property/atom origin 2.
+
+
+variable Aatom      atom f_origin==1.
+variable Batom      atom f_origin==2.
+
+group    A          variable Aatom
+group    B          variable Batom
+
+variable AinB       equal mass(A,chamber_B)
+variable BinA       equal mass(B,chamber_A)
+variable AinA       equal mass(A,chamber_A)
+variable BinB       equal mass(B,chamber_B)
+
+compute  c1         all reduce sum v_Aatom
+compute  c2         all reduce sum v_Batom
+
+fix      holdup     all print ${saveT} "${time} ${mass_A} ${mass_B} ${AinA} ${BinA} ${AinB} ${BinB}"  &
+                                        append logs/holdup  &
+                                        screen no
+
+

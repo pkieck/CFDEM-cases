@@ -1,0 +1,16 @@
+solid outlet
+   facet normal 5.448948e-016 1.000000e+000 0.000000e+000
+      outer loop
+         vertex -4.075000e-001 9.000000e-001 5.000000e-001
+         vertex 4.075000e-001 9.000000e-001 5.000000e-001
+         vertex -4.075000e-001 9.000000e-001 0.000000e+000
+      endloop
+   endfacet
+   facet normal 5.448948e-016 1.000000e+000 0.000000e+000
+      outer loop
+         vertex -4.075000e-001 9.000000e-001 0.000000e+000
+         vertex 4.075000e-001 9.000000e-001 5.000000e-001
+         vertex 4.075000e-001 9.000000e-001 0.000000e+000
+      endloop
+   endfacet
+endsolid outlet

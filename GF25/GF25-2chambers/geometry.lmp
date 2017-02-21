@@ -1,0 +1,12 @@
+fix  mesh all mesh/surface file                   mesh.stl    &
+                           type                   2           &
+                           curvature_tolerant     yes
+
+fix  case all wall/gran    model                  hertz       &
+                           tangential             history     &
+                           rolling_friction       cdt         &
+                           mesh                               &
+                           n_meshes               1 meshes mesh
+
+
+

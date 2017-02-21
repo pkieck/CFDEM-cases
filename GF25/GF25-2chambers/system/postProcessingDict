@@ -1,0 +1,54 @@
+// patchAverage_inlet
+// {
+//         type faceSource;
+//         functionObjectLibs ("libfieldFunctionObjects.so");
+//         log no;
+//         valueOutput yes;
+//         outputControl adjustableRunTime;
+//         outputInterval .001;
+//         source patch;
+//         sourceName inlet;
+//         surfaceFormat null;
+//         operation areaAverage;
+//         fields ( p );
+// }
+
+dp
+{
+    patch1          inlet;
+    patch2          outlet;
+
+    type            fieldValueDelta;
+    functionObjectLibs ("libfieldFunctionObjects.so");
+    operation       subtract;
+    enabled         true;
+    outputControl   adjustableRunTime;
+    outputInterval  .001;
+    log             false;
+    region1
+    {
+        regionType      patch;
+        name            $patch1;
+        type            surfaceRegion;
+        libs            ("libfieldFunctionObjects.so");
+        writeControl    timeStep;
+        writeInterval   1;
+        writeFields     false;
+        log             false;
+        operation       areaAverage;
+        fields          ( p );
+    }
+    region2
+    {
+        regionType      patch;
+        name            $patch2;
+        type            surfaceRegion;
+        libs            ("libfieldFunctionObjects.so");
+        writeControl    timeStep;
+        writeInterval   1;
+        writeFields     false;
+        log             false;
+        operation       areaAverage;
+        fields          ( p );
+    }
+}

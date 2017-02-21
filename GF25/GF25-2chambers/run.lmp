@@ -1,0 +1,59 @@
+log             logs/liggghts
+
+variable dt     equal 2e-6
+variable dt_s	equal .04
+variable dt_r	equal .25
+variable dt_t   equal .01
+variable time   equal time
+
+
+variable saveI  equal ${dt_s}/${dt}
+variable saveR  equal ${dt_r}/${dt}
+variable saveT  equal ${dt_t}/${dt}
+
+atom_style      granular
+atom_modify     map array
+communicate     single vel yes
+
+boundary        f f f
+newton          off
+
+units           si
+processors      2 3 4
+
+# read the restart file
+read_restart    dump/restart/restart.liggghts
+
+include	        matprops.lmp
+neighbor        ${dp} bin
+neigh_modify    delay 0
+
+# timestep, gravity
+timestep        ${dt}
+fix	        gravi all gravity 9.81 vector 0. -1. 0.
+
+# walls
+include         geometry.lmp
+
+# cfd coupling
+fix             cfd1 all couple/cfd                 couple_every 25 mpi
+fix             cfd2 all couple/cfd/force/implicit
+
+include         feed.lmp
+include         rotary_valve.lmp
+include         analytics.lmp
+
+
+
+# apply nve integration to all particles that are inserted as single particles
+fix             integr  all nve/sphere
+fix             balance all balance 4000 y 10 1.05
+
+thermo_style    custom step atoms v_vel_rv v_mass_rv c_c1 c_c2 v_mass_A v_mass_B v_AinA v_BinA v_AinB v_BinB
+thermo          40000
+thermo_modify   lost ignore norm no
+
+dump            dmp all  custom/vtk ${saveI} dump/dump.*.vtk id x y z vx vy vz f_origin
+restart		${saveR} dump/restart/restart.*.liggghts
+
+run             0

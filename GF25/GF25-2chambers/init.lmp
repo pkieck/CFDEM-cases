@@ -1,0 +1,110 @@
+variable 	dt equal 2e-6
+variable        m_chamber equal 7.5
+
+echo            both
+
+atom_style      granular
+atom_modify     map array
+communicate     single vel yes
+
+boundary        f f f
+newton          off
+units           si
+#processors      2 3 2
+
+region          reg block -0.41 0.41 &
+                          -0.05 0.90 &
+                          -0.07 0.58 &
+                          units box
+
+create_box      2 reg
+
+include         matprops.lmp
+
+neighbor        ${dp} bin
+neigh_modify    delay 0
+
+
+# timestep, gravity
+timestep        ${dt}
+fix             gravi all gravity 9.81 vector 0. -1. 0.
+
+# walls
+include         geometry.lmp
+
+# particle distributions and insertion, large numbers are primes used for RNG startup
+fix             pts1 all particletemplate/sphere 67867979                  &
+                                                atom_type 1                &
+                                                density constant ${rhop}   &
+                                                radius  constant ${rp}
+fix             pdd1 all particledistribution/discrete 15485863 1 pts1 1.0
+
+variable        xmin_ch equal -.124
+variable        ymin_ch equal  .05
+variable        xmax_ch equal  .124
+variable        ymax_ch equal  .4 
+
+variable        zmin_cA equal  .01
+variable        zmax_cA equal  .24
+
+variable        zmin_cB equal  .26
+variable        zmax_cB equal  .49
+
+variable        zmin_rv equal .525
+variable        zmax_rv equal .575
+
+region          rv block -.025      .025        &
+                         -.045      .005        &
+                         ${zmin_rv} ${zmax_rv}
+
+
+region          cA block  ${xmin_ch} ${xmax_ch} &
+                          ${ymin_ch} ${ymax_ch} &
+                          ${zmin_cA} ${zmax_cA} 
+
+region          cB block  ${xmin_ch} ${xmax_ch} &
+                          ${ymin_ch} ${ymax_ch} &
+                          ${zmin_cB} ${zmax_cB} 
+
+fix             ins_rv all insert/pack seed                 6028157      &
+                                       distributiontemplate pdd1         &
+                                       vel constant         0. 0. 0.     &
+                                       insert_every         once         &
+                                       overlapcheck         yes          &
+                                       all_in               yes          &
+                                       mass_in_region       .2           &
+                                       region               rv
+
+fix             ins_cA all insert/pack seed                 6028157      &
+                                       distributiontemplate pdd1         &
+                                       vel constant         0. -.5 0.    &
+                                       insert_every         once         &
+                                       overlapcheck         yes          &
+                                       all_in               yes          &
+                                       mass_in_region       ${m_chamber} &
+                                       region               cA
+
+fix             ins_cB all insert/pack seed                 6028157      &
+                                       distributiontemplate pdd1         &
+                                       vel constant         0. -.5 0.    &
+                                       insert_every         once         &
+                                       overlapcheck         yes          &
+                                       all_in               yes          &
+                                       mass_in_region       ${m_chamber} &
+                                       region               cB
+
+
+# apply nve integration to all particles that are inserted as single particles
+fix             integr all nve/sphere
+
+# screen output
+thermo_style    custom step atoms ke
+thermo          5000
+thermo_modify   lost ignore norm no
+
+# insert the first particles so that dump is not empty
+run         1
+#dump        dmp all custom 5000 post/dump.liggghts_init id type x y z ix iy iz vx vy vz fx fy fz omegax omegay omegaz radius
+
+#run         10000 upto
+write_restart   dump/restart/restart.liggghts

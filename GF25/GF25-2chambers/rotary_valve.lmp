@@ -1,0 +1,28 @@
+variable massrate_rv equal ${feedrate}
+
+# Rotary valve model, movement direction: z+
+# assertains a certain outflow rate
+# Paul Kieckhefen (2016)
+#
+# mdot_outflow = m_particles / t_residence
+# t_residence = V_region/Vdot_particles 
+#             = A_region*L_region/(A_region*v_particles)
+#             = L_region/v_particles
+# v_particles = L_region/t_residence
+#             = L_region*mdot_outflow/m_particles
+
+# bounding box coords for rotary valve region
+variable zmin_rv equal .525
+variable zmax_rv equal .575
+
+region   rv block INF        INF        &
+                  INF        INF        &
+                  ${zmin_rv} ${zmax_rv}
+variable mass_rv equal mass(all,rv)
+variable L_rv    equal abs(v_zmax_rv-v_zmin_rv)
+variable vel_rv  equal v_L_rv*v_massrate_rv/v_mass_rv
+
+# IMPORTANT: add v_vel_rv to thermo, as it needs to be updated regularly
+# next part is considered in the liggghtsCommands by means of set vz in region rv
+#fix      rv_model all set/vel dim z region rv vel ${vel_rv}
+#fix	rv_model2 rv move NULL NULL NULL NULL NULL ${vel_rv}

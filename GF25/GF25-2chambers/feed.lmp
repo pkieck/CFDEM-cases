@@ -1,0 +1,34 @@
+variable feedrate equal 0.016666666667 # kg/s
+
+# Particle insertion in a box
+
+# bounding box coords for feed region
+variable xmin_feed equal -.017
+variable ymin_feed equal  .233
+variable zmin_feed equal -.06
+variable xmax_feed equal  .017
+variable ymax_feed equal  .267
+variable zmax_feed equal -.025
+
+
+region   feed block ${xmin_feed} ${xmax_feed} &
+                    ${ymin_feed} ${ymax_feed} &
+                    ${zmin_feed} ${zmax_feed}
+
+fix      pts_feed all particletemplate/sphere 67867979 atom_type 1       &
+                                              density  constant  ${rhop} &
+                                              radius   constant  ${rp}
+
+fix      pdd_feed all particledistribution/discrete 15485863 1 pts_feed 1.0
+
+fix      ins_feed all insert/rate/region                       &
+                       seed                 86028157           &
+                       distributiontemplate pdd_feed           &
+                       mass                 INF                &
+                       massrate             ${feedrate}        &
+                       insert_every         200                &
+                       overlapcheck         yes                &
+                       all_in               yes                &
+                       vel                  constant 0. 0. 1.  &
+                       region               feed               &
+                       ntry_mc              10000
