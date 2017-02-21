@@ -1,0 +1,16 @@
+fix  mesh all mesh/surface file                   mesh.stl    &
+                           type                   2           &
+                           element_exclusion_list read exlist &
+                           curvature_tolerant     yes
+
+fix  case all wall/gran    model                  hertz       &
+                           tangential             history     &
+                           mesh                               &
+                           n_meshes               1 meshes mesh
+
+fix  ypln all wall/gran    model                  hertz       &
+                           tangential             history     &
+                           primitive                          &
+                           type                   2           &
+                           yplane                 0
+

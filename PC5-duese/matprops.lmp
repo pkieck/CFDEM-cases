@@ -1,0 +1,14 @@
+variable    dp   equal .000656
+variable    rp   equal ${dp}/2.
+variable    rhop equal 1328.
+
+
+# Type 1 - particles, Type 2 - wall material
+fix         m1 all property/global youngsModulus peratomtype 3.06e9 2.5e9
+fix         m2 all property/global poissonsRatio peratomtype .3     .3
+fix         m3 all property/global coefficientRestitution peratomtypepair 2 .72   .73  .73  0.1
+fix         m4 all property/global coefficientFriction    peratomtypepair 2 .6545 .156 .156 0.1
+
+# pair style
+pair_style  gran model hertz tangential history # rolling_friction cdt # history # Hertzian without cohesion
+pair_coeff  * *
