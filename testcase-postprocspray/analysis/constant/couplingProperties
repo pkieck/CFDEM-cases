@@ -1,0 +1,143 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.4                                   |
+|   \\  /    A nd           | Web:      http://www.openfoam.org               |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+
+    root            "";
+    case            "";
+    instance        "";
+    local           "";
+
+    class           dictionary;
+    object          couplingProperties;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//===========================================================================//
+// sub-models & settings
+
+modelType "B"; // A or B
+
+couplingInterval 25; 
+
+voidFractionModel centre;//
+
+locateModel standard;
+
+meshMotionModel noMeshMotion;
+
+regionModel allRegion;
+
+IOModel off;
+
+probeModel particleProbe;
+
+dataExchangeModel oneWayVTKmod;
+
+averagingModel dense;//dilute;//
+
+clockModel off;//off;
+
+smoothingModel off;// localPSizeDiffSmoothing;// constDiffSmoothing; //
+
+forceModels
+(
+  noDrag
+);
+
+momCoupleModels
+(
+  off
+);
+
+turbulenceModelType turbulenceProperties;
+
+//===========================================================================//
+// sub-model properties
+
+oneWayVTKmodProps
+{
+  relativePath         "../dump";
+  maxNumberOfParticles 12000;
+  DEMts                1.e-5;
+  couplingFilename     "dump.%i.vtk";
+}
+
+
+particleProbeProps
+{
+  verboseToFile;
+  printEvery       500; //every .05 s
+  particleIDsToSample (0 0);
+  sampleAll;
+  probeDebug;
+  writePrecision 4;   //number of significant digits to print
+
+}
+
+volWeightedAverageProps
+{
+    scalarFieldNames
+    (
+        voidfraction
+    );
+    vectorFieldNames
+    (
+    );
+    upperThreshold 0.999;
+    lowerThreshold 0;
+    verbose true;
+}
+
+noDragProps {}
+
+particleCellVolumeProps
+{
+    upperThreshold 0.999;
+    lowerThreshold 0.;
+    verbose true;
+}
+
+fieldVolWeightedProps
+{
+    startTime 0;
+
+    scalarFieldNames
+    (
+    );
+
+    vectorFieldNames
+    (
+        "U"
+    );
+    useVolumeFraction true;
+    volumeFractionName "voidfraction";
+}
+
+engineProps
+{
+    treeSearch true;
+}
+
+centreProps
+{
+    alphaMin 0.36;
+    scaleUpVol 1.0;
+}
+
+dividedProps
+{
+    alphaMin 0.36;
+    scaleUpVol 1.0;
+}
+// ************************************************************************* //

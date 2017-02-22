@@ -1,0 +1,62 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.6                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     postprocSpray;
+
+startFrom       startTime;
+
+startTime       .25;
+
+stopAt          endTime;
+
+endTime         10.;// 1.75;
+
+deltaT          1e-4;
+
+writeControl    adjustableRunTime;
+
+writeInterval   .01;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression uncompressed;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  no;
+
+maxCo 1;
+
+libs ( "libPostproc.so" );
+
+verbose         false;
+
+functions
+{
+//#include "postProcessingDict"
+}
+
+//DebugSwitches { injectionModel 0; cloud 20; cloudInfo 0;}
+// ************************************************************************* //

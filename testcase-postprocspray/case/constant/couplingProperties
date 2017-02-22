@@ -1,0 +1,147 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.4                                   |
+|   \\  /    A nd           | Web:      http://www.openfoam.org               |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+
+    root            "";
+    case            "";
+    instance        "";
+    local           "";
+
+    class           dictionary;
+    object          couplingProperties;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//===========================================================================//
+// sub-models & settings
+
+modelType "A"; // A or B
+
+couplingInterval 100;
+
+voidFractionModel divided;//centre;//
+
+locateModel engine;
+
+meshMotionModel noMeshMotion;
+
+regionModel allRegion;
+
+IOModel off;
+
+probeModel off;
+
+dataExchangeModel twoWayMPI;
+
+averagingModel dense;//dilute;//
+
+clockModel standardClock;//off;
+
+smoothingModel off;// localPSizeDiffSmoothing;// constDiffSmoothing; //
+
+forceModels
+(
+    BeetstraDrag
+    gradPForce
+    viscForce
+);
+
+momCoupleModels
+(
+    implicitCouple
+);
+
+//turbulenceModelType "RASProperties";//"LESProperties";//OFversion24x
+turbulenceModelType turbulenceProperties;//"LESProperties";//OFversion30x
+
+//===========================================================================//
+// sub-model properties
+
+constDiffSmoothingProps
+{
+    lowerLimit 0.1;
+    upperLimit 1e10;
+    smoothingLength 1.5e-3;
+}
+
+implicitCoupleProps
+{
+    velFieldName "U";
+    granVelFieldName "Us";
+    voidfractionFieldName "voidfraction";
+}
+
+gradPForceProps
+{
+    pFieldName "p";
+    voidfractionFieldName "voidfraction";
+    velocityFieldName "U";
+    interpolation true;
+}
+
+viscForceProps
+{
+    velocityFieldName "U";
+    interpolation true;
+}
+totalMomentumExchangeProps
+{
+    implicitMomExFieldName "Ksl";
+    explicitMomExFieldName "none";
+    fluidVelFieldName "U";
+    granVelFieldName "Us";
+}
+KochHillDragProps
+{
+    //verbose true;
+    velFieldName "U";
+    voidfractionFieldName "voidfraction";
+    interpolation true;
+    //forceSubModels
+    //(
+    //    ImExCorr
+    //);
+    implForceDEM true;
+    //implForceDEMaccumulated true;
+    //explicitCorr true;
+}
+
+BeetstraDragProps
+{
+    velFieldName "U";
+    gravityFieldName "g";
+    voidfractionFieldName "voidfraction";
+    interpolation true;
+//  useFilteredDragModel ;
+//  useParcelSizeDependentFilteredDrag ;
+    k       0.05;
+    aLimit  0.0;
+//    verbose true;
+}
+engineProps
+{
+    treeSearch true;
+}
+
+dividedProps
+{
+    alphaMin 0.1;
+    scaleUpVol 1.0;
+}
+
+twoWayMPIProps
+{
+    liggghtsPath "run.lmp";
+}
+// ************************************************************************* //

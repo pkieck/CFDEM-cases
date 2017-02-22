@@ -1,0 +1,220 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  4.0                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      binary;
+    class       dictionary;
+    location    "constant";
+    object      SprayCloudProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solution
+{
+    active          true;
+    coupled         false;
+    transient       yes;
+    cellValueSourceCorrection on;
+    maxCo           0.3;
+
+    sourceTerms
+    {
+        schemes
+        {
+            rho             explicit 1;
+            U               explicit 1;
+            Yi              explicit 1;
+            h               explicit 1;
+            radiation       explicit 1;
+        }
+    }
+
+    interpolationSchemes
+    {
+        rho             cell;
+        U               cellPoint;
+        thermo:mu       cell;
+        T               cell;
+        Cp              cell;
+        kappa           cell;
+        p               cell;
+    }
+
+    integrationSchemes
+    {
+        U               Euler;
+        T               analytical;
+    }
+}
+
+
+constantProperties
+{
+    T0              320;
+
+    // place holders for rho0 and Cp0
+    // - reset from liquid properties using T0
+    rho0            1000;
+    Cp0             4187;
+
+    constantVolume  false;
+}
+
+
+subModels
+{
+    particleForces
+    {
+        sphereDrag;
+    }
+
+    injectionModels
+    {
+/*        inj
+        {
+            type            cellZoneInjection; //patchInjection; //patchInjection statt manualInjection
+            cellZone        inj; //neu
+            numberDensity   2e8;
+            massTotal       1.34e-6;
+            parcelBasisType mass;
+            SOI             0.25;
+            U0              (0 0 -5.);
+
+            sizeDistribution { type fixedValue; fixedValueDistribution { value    40.e-6; } }
+        }
+*/
+        inletInj
+        {
+            type            patchInjection; //patchInjection statt manualInjection
+            patchName       inlet; //neu
+            duration        1; //neu
+            parcelsPerSecond 2.e6; //neu
+            flowRateProfile constant 1; //neu
+            massTotal       0.000134;
+            parcelBasisType mass;
+            SOI             0.25;
+            U0              (0 0 .2);
+            sizeDistribution
+            {
+                type        fixedValue;
+                fixedValueDistribution
+                {
+                    value   40.e-6;
+                }
+            }
+       }
+    }
+
+    dispersionModel none;
+
+    patchInteractionModel localInteraction;
+
+    heatTransferModel none; //RanzMarshall;
+
+    compositionModel singlePhaseMixture;
+
+    phaseChangeModel none;// liquidEvaporationBoil;
+
+    surfaceFilmModel none;
+
+    atomizationModel none;
+
+    breakupModel    none; //ReitzDiwakar; // ReitzKHRT;
+
+    stochasticCollisionModel none;
+
+    adiation       off;
+    localInteractionCoeffs
+    {
+        patches
+        (
+            "(nozzle|inlet)"
+            {
+                type rebound;
+                e    1;
+                mu   0;
+            }
+
+            wall
+            {
+                type escape;
+            }
+
+            outlet
+            {
+                type escape;
+            }
+        );
+    }
+    standardWallInteractionCoeffs
+    {
+        type            escape;
+    }
+
+    RanzMarshallCoeffs
+    {
+        BirdCorrection  true;
+    }
+
+    singlePhaseMixtureCoeffs
+    {
+        phases
+        (
+            liquid
+            {
+                H2O             1;
+            }
+        );
+    }
+/*
+    liquidEvaporationBoilCoeffs
+    {
+        enthalpyTransfer enthalpyDifference;
+
+        activeLiquids    ( H2O );
+    }
+
+    ReitzDiwakarCoeffs
+    {
+        solveOscillationEq yes;
+        Cbag            6;
+        Cb              0.785;
+        Cstrip          0.5;
+        Cs              10;
+    }
+
+
+    ReitzKHRTCoeffs
+    {
+        solveOscillationEq yes;
+        B0              0.61;
+        B1              40;
+        Ctau            1;
+        CRT             0.1;
+        msLimit         0.2;
+        WeberLimit      6;
+    }
+
+    TABCoeffs
+    {
+        y0              0;
+        yDot0           0;
+        Cmu             10;
+        Comega          8;
+        WeCrit          12;
+    }
+*/
+}
+
+
+cloudFunctions
+{}
+
+
+// ************************************************************************* //
