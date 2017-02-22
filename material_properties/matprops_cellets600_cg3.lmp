@@ -1,0 +1,10 @@
+fix m1 all property/global youngsModulus peratomtype 100.e6 210.e6
+fix m2 all property/global poissonsRatio peratomtype .5 .35
+fix m3 all property/global coefficientRestitution peratomtypepair 2 .051 .051 .051 .051
+fix m4 all property/global coefficientFriction peratomtypepair 2 .5 .5 .5 1.
+fix m5 all property/global coefficientRollingFriction peratomtypepair 2 8.333333333333334e-02 0.0277778 0.0277778 1.
+
+
+pair_style      gran model hertz tangential history rolling_friction epsd2 tangential_damping off 
+pair_coeff      * *
+

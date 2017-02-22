@@ -1,0 +1,15 @@
+variable    rhop equal 1440
+variable    dp   equal .003
+variable    rp   equal ${dp}/2
+
+# matprops for Steel, stainless AISI 302 (http://www.engineeringtoolbox.com/young-modulus-d_417.html)
+# type 1 particles, type 2 wall
+fix         m1 all property/global youngsModulus   peratomtype 1.58e9 1.8e9
+fix         m2 all property/global poissonsRatio   peratomtype 0.22   0.3
+fix         m3 all property/global coefficientRestitution     peratomtypepair 2 .55     .55     .55     .90
+fix         m4 all property/global coefficientFriction        peratomtypepair 2 .8693   .0981   .0981   .10
+fix         m5 all property/global coefficientRollingFriction peratomtypepair 2 .19     .19     .19     .10
+
+pair_style      gran model hertz tangential history rolling_friction cdt
+pair_coeff      * *
+
