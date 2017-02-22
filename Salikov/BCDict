@@ -1,0 +1,7 @@
+// just for easy (& automated) setup of cases
+
+U               3.86;
+k               0.0558;
+epsilon         2.05;
+k_nozzle        1.17;
+epsilon_nozzle  300.8;

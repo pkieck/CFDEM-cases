@@ -1,0 +1,24 @@
+# first we declare the surface mesh and its (material) type. 
+# the mesh was kinda bad,
+# so we had to exclude elements and lower the standard. 
+# just delete those lines if starting with a new mesh
+# if LIGGGHTS complains, just replace read with write,
+# run cfdemLiggghts init.lmp and replace write with read.
+# there is a exlist generator, but it cannot be run in parallel
+
+fix  mesh all mesh/surface file                   mesh.stl    &
+                           type                   2           
+
+# mesh shall be treated as a wall with Hertzian behaviour
+fix  case all wall/gran    model                  hertz       &
+                           tangential             history     &
+                           mesh                               &
+                           n_meshes               1 meshes mesh
+
+# analytical plane in xz-plane at y = 0
+fix  ypln all wall/gran    model                  hertz       &
+                           tangential             history     &
+                           primitive                          &
+                           type                   2           &
+                           yplane                 0
+

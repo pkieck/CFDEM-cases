@@ -1,0 +1,32 @@
+# region          sprayzone mesh/tet file sprayzone.vtk scale 1. move 0. -.01 0. rotate 0. 0. 0. # use this OR the following dual cone
+                                #                                         zoneRad (calculated)
+                                #                                           |--|
+variable time      equal time   #                                           .-----|-  
+variable xBase     equal 0.     # \                                        /|\    | hUpper
+variable yBase     equal 0.043  #   Coordinates of lowest cone apex       / | \   |
+variable zBase     equal 0.1    # /                                      -----------
+variable baseAngle equal 30     # deg, usually 40 or 30 deg               \ | /   |
+variable hUpper    equal 0.035  # height of upper cone from radius         \|/    | hLower
+variable hLower    equal 0.15   # height of lower cone up to radius         `-----|-
+                                #                                        {x,y,z}Base
+
+
+variable zoneRad   equal ${hLower}*tan(${baseAngle}/180.*3.14159265359) #\
+variable yLowerMax equal ${yBase}+${hLower}                             # calculated
+variable yUpperMax equal ${yLowerMax}+${hUpper}                         #/
+
+region   lowerCone cone y ${xBase} ${zBase} 0.         ${zoneRad} ${yBase}     ${yLowerMax}
+region   upperCone cone y ${xBase} ${zBase} ${zoneRad} 0.         ${yLowerMax} ${yUpperMax}
+region   sprayzone union 2 lowerCone upperCone
+
+# particles in spray zone, written to dump/particlesInZone
+variable nparticlesInZone equal count(all,sprayzone)
+fix      restimeprint   all print ${saveT} "${time} ${nparticlesInZone}" &
+                                            append logs/particlesInZone
+
+# Residence Time Tracer for spray zone, don't forget to add f_restimetracer[2] to your dumps!
+fix      restimetracer  all property/atom/timetracer add_region sprayzone check_region_every 200
+
+# TODO fix      resties        all ave ...
+# TODO fix      zonevelocities all ave 200
+

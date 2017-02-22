@@ -1,0 +1,68 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.6                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     cfdemSolverPiso;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         1e5;
+
+deltaT          5e-5;
+
+writeControl    adjustableRunTime;
+
+writeInterval   .1;
+/*
+stopAt          endTime;
+
+endTime         1e4;
+
+deltaT          1;
+
+writeControl    adjustableRunTime;
+
+writeInterval   100;
+*/
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression uncompressed;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  no;
+
+maxCo 1;
+
+//libs ( "libgroovyBC.so" "libfiniteVolumeCFDEM.so");
+
+functions
+{
+#include "postProcessingDict"
+}
+// ************************************************************************* //

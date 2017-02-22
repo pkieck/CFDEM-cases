@@ -1,0 +1,262 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.4                                   |
+|   \\  /    A nd           | Web:      http://www.openfoam.org               |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+
+    root            "";
+    case            "";
+    instance        "";
+    local           "";
+
+    class           dictionary;
+    object          couplingProperties;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//===========================================================================//
+// sub-models & settings
+
+modelType "A"; // A or B. A needs to have gradPForce & viscForce. B just needs Archimedes
+
+couplingInterval 200; // should be CFD_TS/DEM_TS
+
+voidFractionModel divided;//centre;// divided is pretty good
+
+locateModel engine;
+
+meshMotionModel noMeshMotion;
+
+regionModel allRegion;
+
+IOModel off;
+
+probeModel off; //particleProbe; // is hard to configure and needs a lot of space.
+
+dataExchangeModel twoWayMPI;
+
+averagingModel dense;//dilute;// // dilute does not compute averaged particle velocities for each cell but just picks one. 
+
+clockModel off;//off; // we don't care for benchmarking
+
+smoothingModel constDiffSmoothing;// off;  // smoothing is great, makes everything alot more stable and allows for larger CFD-TS
+
+forceModels
+(
+    //GidaspowDrag
+    //KochHillDrag
+    BeetstraDrag
+    //DiFeliceDrag
+    gradPForce
+    viscForce
+        //Archimedes
+    //volWeightedAverage    // \
+    //totalMomentumExchange //
+    //particleCellVolume    //      these are not forces 
+    //fieldTimeAverage      //      but for postprocessing
+    //fieldStore            //
+    //fieldVolWeighted      // /
+);
+
+momCoupleModels
+(
+    implicitCouple
+);
+
+//turbulenceModelType "RASProperties";//"LESProperties";//OFversion24x
+turbulenceModelType turbulenceProperties;//"LESProperties";//OFversion30x
+
+//===========================================================================//
+// sub-model properties
+
+
+constDiffSmoothingProps
+{
+    lowerLimit 0.1;
+    upperLimit 1e10;
+    smoothingLength 5e-3; // should be 2-3x dp
+}
+
+implicitCoupleProps
+{
+    velFieldName "U";
+    granVelFieldName "Us";
+    voidfractionFieldName "voidfraction";
+}
+
+gradPForceProps
+{
+    pFieldName "p";
+    voidfractionFieldName "voidfraction";
+    velocityFieldName "U";
+    interpolation true;
+}
+
+viscForceProps
+{
+    velocityFieldName "U";
+    interpolation true;
+}
+dividedProps
+{
+    alphaMin 0.1; //  usually not needed
+    scaleUpVol 1.0;
+}
+twoWayMPIProps
+{
+    liggghtsPath "run.lmp"; // path to LIGGGHTS-script 
+}
+
+DiFeliceDragProps
+{
+    //verbose true;
+    velFieldName "U";
+    voidfractionFieldName "voidfraction";
+    granVelFieldName "Us";
+    interpolation true;
+}
+
+KochHillDragProps
+{
+    //verbose true;
+    velFieldName "U";
+    voidfractionFieldName "voidfraction";
+    interpolation true; // comp. expensive, but good
+    //forceSubModels
+    //(
+    //    ImExCorr
+    //);
+    implForceDEM true;
+    //implForceDEMaccumulated true;
+    //explicitCorr true;
+//    scale 3;
+}
+
+BeetstraDragProps
+{
+    velFieldName "U";
+    gravityFieldName "g";
+    voidfractionFieldName "voidfraction";
+    granVelFieldName "Us";
+    interpolation true;
+//   useFilteredDragModel ;  //According to Radl et al.
+//   g 9.81;
+//   rhoP 1328; //Particle density
+//   nuf 1.5e-5;//Kinematic fluid viscosity
+//    useParcelSizeDependentFilteredDrag ; //also corrects for parcel size
+//    k       0.05;
+//    aLimit  0.0;
+//    verbose true;
+}
+
+virtualMassForceProps
+{
+    velFieldName "U";
+}
+
+particleCellVolumeProps
+{
+    upperThreshold 0.999;
+    lowerThreshold 0.;
+    verbose true;
+}
+
+fieldStoreProps
+{
+    scalarFieldNames
+    (
+    );
+
+    vectorFieldNames
+    (
+        "U"
+    );
+}
+
+fieldVolWeightedProps
+{
+    startTime 0;
+
+    scalarFieldNames
+    (
+    );
+
+    vectorFieldNames
+    (
+        "U"
+    );
+    useVolumeFraction true;
+    volumeFractionName "voidfraction";
+}
+
+oneWayVTKProps
+{
+    couplingFilename "vtk_out%4.4d.vtk";
+    maxNumberOfParticles 30000;
+}
+
+twoWayFilesProps
+{
+    maxNumberOfParticles 10100;
+}
+
+centreProps
+{
+    alphaMin 0.1;
+}
+
+engineProps
+{
+    treeSearch true;
+}
+
+volWeightedAverageProps
+{
+    scalarFieldNames
+    (
+        voidfraction
+    );
+    vectorFieldNames
+    (
+    );
+    upperThreshold 0.999;
+    lowerThreshold 0;
+    verbose true;
+}
+totalMomentumExchangeProps
+{
+    implicitMomExFieldName "Ksl";
+    explicitMomExFieldName "none";
+    fluidVelFieldName "U";
+    granVelFieldName "Us";
+}
+GidaspowDragProps
+{
+    verbose true;
+    velFieldName "U";
+    voidfractionFieldName "voidfraction";
+    granVelFieldName "Us";
+    interpolation true;
+    phi 1;
+}
+DEMbasedDragProps
+{
+    velFieldName "U";
+    voidfractionFieldName "voidfraction";
+}
+ArchimedesProps
+{
+    gravityFieldName "g";
+}
+
+
+// ************************************************************************* //

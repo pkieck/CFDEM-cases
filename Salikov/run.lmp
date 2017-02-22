@@ -1,0 +1,58 @@
+log             logs/liggghts
+
+variable dt     equal 2.5e-7
+variable dt_s	equal .025 # 40 Hz
+variable dt_r	equal .25
+variable dt_t   equal .001 # thermo output
+variable time   equal time  # sounds silly, but makes thermo variable acc'ible
+
+variable saveI  equal ${dt_s}/${dt}
+variable saveR  equal ${dt_r}/${dt}
+variable saveT  equal ${dt_t}/${dt}
+
+atom_style      granular
+atom_modify     map array
+communicate     single vel yes
+
+boundary        f f f
+newton          off
+
+units           si
+processors      2 2 1     # splits in x y z directions, x*y*z = number of procs
+
+#coarsegrain     4         # might be called coarsegraining, depending on your version, not available in public
+
+# read the restart file
+read_restart    dump/restart/restart.liggghts
+
+# material properties
+include	        matprops.lmp
+neighbor        ${dp} bin
+neigh_modify    delay 0
+
+# timestep, gravity
+timestep        ${dt}
+fix	            gravi all gravity 9.81 vector 0. -1. 0. # negative y-direction
+
+# walls
+include         geometry.lmp
+
+# run time postprocessing
+#include         sprayzone.lmp
+
+# cfd coupling
+fix             cfd1 all couple/cfd                 couple_every 200 mpi
+fix             cfd2 all couple/cfd/force/implicit
+
+# apply nve integration to all particles that are inserted as single particles
+fix             integr  all nve/sphere
+#fix             balance all balance 4000 y 10 1.05 # may not be available
+
+thermo_style    custom step atoms # v_nparticlesInZone
+thermo          ${saveT}
+thermo_modify   lost ignore norm no
+
+dump            dmp all  custom/vtk ${saveI} dump/dump.*.vtk id x y z vx vy vz omegax omegay omegaz # f_restimetracer[2]
+restart		    ${saveR} dump/restart/restart.*.liggghts
+
+run             0

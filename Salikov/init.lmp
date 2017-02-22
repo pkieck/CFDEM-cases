@@ -1,0 +1,79 @@
+variable 	dt equal 2e-6
+
+
+echo            both
+
+atom_style      granular
+atom_modify     map array
+communicate     single vel yes
+
+boundary        f f f # in x,y,z-direction. f means fixed, m means expanding if needed
+newton          off
+#coarsegrain     4     # might be called coarsegraining, depending on your version
+units           si
+#processors      2 3 2 # no need to be parallel
+
+
+#                           neg. dir    pos. dir.
+region          reg block   -0.126      0.126    &
+                            -0.11       1.001    &
+                            -0.001      0.101    &
+                            units box
+create_box      2 reg  # 2 refers the number of material types (particle + wall)
+
+include         matprops.lmp
+
+neighbor        ${dp} bin
+neigh_modify    delay 0
+
+
+# timestep, gravity
+timestep        ${dt}
+fix             gravi all gravity 9.81 vector 0. -1. 0.
+
+# walls
+include         geometry.lmp
+
+
+# particle insertion region
+region          bc block -0.125       0.125   &
+                          0.2         0.3     &
+                          0.0         0.1     &
+                          units box
+# particle distributions
+# variables are defined in matprops.lmp, type 1 was previously defined as
+# to contain the particle's properties. 
+# particle distributions and insertion, large numbers are primes used for RNG startup
+fix             pts1 all particletemplate/sphere 67867979                  &
+                                                atom_type 1                &
+                                                density constant ${rhop}   &
+                                                radius  constant ${rp}
+# large prime, then number of templates to be mixed, then ids of templates
+# followed by the respective mass fraction. here we only have one.
+fix             pdd1 all particledistribution/discrete 15485863 1 pts1 1.0
+
+fix             ins all insert/pack seed 86028157                          &
+                                                 distributiontemplate pdd1 &
+                                                 vel    constant 0. -.5 0. &
+                                                 insert_every         once &
+                                                 overlapcheck         yes  &
+                                                 all_in               yes  &
+                                                 mass_in_region       .25  &
+                                                 region bc
+
+# apply nve integration to all particles that are inserted as single particles
+fix             integr all nve/sphere
+
+# screen output
+thermo_style    custom step atoms ke
+thermo          5000
+thermo_modify   lost ignore norm no
+
+# insert the first particles so that dump is not empty
+run         1
+#dump        dmp all custom 5000 post/dump.liggghts_init id type x y z ix iy iz vx vy vz fx fy fz omegax omegay omegaz radius
+
+#run         10000 upto
+# write restart for CFDEM-coupling 
+write_restart   dump/restart/restart.liggghts
+write_restart   dump/restart/restart.0.liggghts
