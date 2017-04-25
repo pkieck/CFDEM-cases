@@ -1,0 +1,39 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.4                                   |
+|   \\  /    A nd           | Web:      http://www.openfoam.org               |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+
+    root            "";
+    case            "";
+    instance        "";
+    local           "";
+
+    class           dictionary;
+    object          ;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+DEM_ts              2.5e-7; // s
+DEM_dump_interval   4e4;    // DEM timesteps
+dParticle           656e-6; // m
+scale               4;      // coarse graining factor
+minx -.125;         // needed for contact detection, consider whole geometry
+maxx  .125;         // otherwise droplets will not be deposited!
+miny 0.;
+maxy 1.;
+minz 0.;
+maxz 0.2;
+dx .002;            // needs to be smaller than a parcel diameter
+
+// ************************************************************************* //

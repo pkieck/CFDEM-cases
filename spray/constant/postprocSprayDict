@@ -1,0 +1,7 @@
+cpAir 1004.;      // [J/kg/K]
+cpVapor 1860.;
+dHLV 2500e3;      //[J/kg]
+lambdaAir 0.025;  //[W/m/K]
+minimumWaterMass 1.e-13;
+solveTTransport false;
+soveVapTransport false;

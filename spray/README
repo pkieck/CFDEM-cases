@@ -1,0 +1,21 @@
+=== Case template for postprocSpray === 
+
+== Steps ==
+Run CFD-DEM simulation. Use a high field sampling frequency for both fluid and particles. 
+
+Reconstruct the case using: reconstructPar -times XX:YY -fields '(U voidfraction)'
+XX and YY are the first and last time you want to consider in your simulation. 
+
+Copy this case into a subfolder of the coupled case. Switch into that directory. 
+
+Create symlinks to the time folders in the coupled case: for i in ../[0-9]*; do ln -s $i .; done
+
+Copy all files from 0.orig into your start time directory and adapt them to your case. 
+This is to prepare the files for use with a compressible "solver".
+
+Edit system/decomposeParDict for an appropriate number of subdomains 
+and system/controlDict for startTime, endTime and write... . 
+
+Configure the spray solver using constant/sprayCloudProperties and constant/postprocSpray{Properties,Dict}
+
+Run the solver like any other OpenFOAM solver. 
