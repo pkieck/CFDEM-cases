@@ -1,0 +1,121 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  4.1                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      particleProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solution
+{
+    active          true;
+    coupled         false;
+    cellValueSourceCorrection off;
+    maxCo .9;
+
+    interpolationSchemes
+    {
+        rhoRec          cell;
+        URec            cellPoint;
+        UsRec           cellPoint;
+        voidfractionRec cellPoint;
+        mu              cell;
+    }
+
+    integrationSchemes
+    {
+        U               Euler;
+    }
+
+    sourceTerms
+    {
+        schemes
+        {
+            U semiImplicit 1;
+        }
+    }
+}
+
+constantProperties
+{
+    rho0            2500;
+    criticalVoidfraction  .98;
+
+/*    parcelTypeId 1;
+
+    rhoMin          1e-15;
+    minParcelMass   1e-15;
+
+    youngsModulus   1e8;
+    poissonsRatio   0.35;
+
+    constantVolume  false;
+
+    alphaMax        0.99;
+*/
+}
+
+subModels
+{
+    particleForces
+    {
+        gravity {}
+    }
+    injectionModels
+    {
+        wholeDomain
+        {
+            type            cellZoneInjection;
+            cellZone        injection;
+            massTotal       0;
+            numberDensity   190983333; // = 57295/.0003 
+            parcelBasisType fixed;
+            nParticle       1;
+            SOI             0;
+            U0              (0 0 0);
+            sizeDistribution
+            {
+                type        fixedValue;
+                fixedValueDistribution { value   0.001; }
+            }
+        }
+    }
+    // DO NOT use standardWallInteraction!
+    // standardwallinteractions are only applied for walls,
+    // not patches! -> particle loss!
+    patchInteractionModel localInteraction; 
+
+    localInteractionCoeffs
+    {
+        patches
+        (
+            "(nozzle|inlet)"    { type rebound; }
+            walls               { type rebound; }
+            outlet              { type rebound; }
+        );
+    }
+
+    fluctuationModel        isotropicFluctuation;
+    isotropicFluctuationCoeffs
+    {
+        D0                          5e-4; 
+        voidfractionInterpolation   true;
+        voidfractionBounding        true;
+    }
+}
+
+
+cloudFunctions
+{}
+
+
+// ************************************************************************* //
