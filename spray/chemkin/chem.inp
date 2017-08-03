@@ -1,0 +1,10 @@
+ELEMENTS
+ H   O    N
+END
+SPECIE
+N2 H2O H2OL
+END
+REACTIONS
+ H2O            => H2OL        5.00E+8  0.0   15780.0! 1
+	FORD	/ H2O	0.25 /
+END
