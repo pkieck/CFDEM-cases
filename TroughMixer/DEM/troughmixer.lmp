@@ -1,0 +1,118 @@
+variable 	    dt       equal 5e-5  # s
+variable        feedrate equal .2    # kg/s
+variable        mass_ins equal 120.  # kg
+variable        t_ins    equal 10.   # s
+variable        t_res    equal 1.    # s
+variable        t_dmp    equal .2    # s
+variable        t_run    equal 1000  # s
+
+
+variable        massrate_ins equal ${mass_ins}/${t_ins}
+variable        dts_ins      equal ${t_ins}/${dt}
+variable        dts_res      equal ${t_res}/${dt}
+variable        dts_dmp      equal ${t_dmp}/${dt}
+
+variable        t            equal step*dt
+
+echo            both
+
+atom_style      granular
+atom_modify     map array
+communicate     single vel yes
+
+boundary        f f f
+newton          off
+units           si
+processors      1 1 2
+
+region          reg       block        -.26  .26  &
+                                       -.25  .4   &
+                                       -.01  2.01 &
+                          units        box
+create_box      1 reg
+
+include         matprops.lmp
+
+neighbor        ${dp} bin
+neigh_modify    delay 0
+
+
+# timestep, gravity
+timestep        ${dt}
+fix             gravi all gravity 9.81 vector 0. -1. 0.
+
+# walls
+fix  msh1 all mesh/surface file                   casing.stl          &
+                           type                   1
+fix  msh2 all mesh/surface file                   mixing_assembly.stl &
+                           type                   1
+
+fix  case all wall/gran    model                  hertz               &
+                           tangential             history             &
+                           mesh                                       &
+                           n_meshes               2 meshes msh1 msh2
+
+fix  move all move/mesh    mesh                   msh2                &
+                           rotate                                     &
+                           origin                 0. 0. 0.            &
+                           axis                   0. 0. 1.            &
+                           period                 1.5
+
+# particle distributions and insertion, large numbers are primes used for RNG startup
+region bc        block        -.1   .1  &
+                               .25  .37 &
+                               0    2
+fix    pts1 all particletemplate/sphere 67867979                    &
+                                        atom_type  1                &
+                                        density    constant ${rhop} &
+                                        radius     constant ${rp}
+fix    pdd1 all particledistribution/discrete 15485863 1 pts1 1.0
+fix    ins  all insert/rate/region      seed                 86028157           &
+                                        distributiontemplate pdd1               &
+                                        mass                 ${mass_ins}        &
+                                        massrate             ${massrate_ins}    &
+                                        insert_every         2000               &
+                                        overlapcheck         yes                &
+                                        all_in               yes                &
+                                        vel                  constant 0. -.5 0. &
+                                        region               bc                 &
+                                        ntry_mc              10000
+
+
+# apply nve integration to all particles that are inserted as single particles
+fix    integr all nve/sphere
+
+# screen output
+thermo_style    custom v_t step atoms ke 
+thermo          5000
+thermo_modify   lost ignore norm no
+
+# insert the first particles so that dump is not empty
+run             ${dts_ins}
+unfix           ins
+
+shell           mkdir -p dump/restart
+write_restart   dump/restart/restart_ins.liggghts
+
+
+# feed
+region fd        block        -.05   .05  &
+                               .25   .35  &
+                               0     .1
+
+fix    fd   all insert/rate/region      seed                 86028157           &
+                                        distributiontemplate pdd1               &
+                                        mass                 INF                &
+                                        massrate             ${feedrate}        &
+                                        insert_every         200                &
+                                        overlapcheck         yes                &
+                                        all_in               yes                &
+                                        vel                  constant 0. -.5 0. &
+                                        region               fd                 &
+                                        ntry_mc              10000
+
+dump   dmp1 all custom/vtk ${dts_dmp} dump/dump.*.vtk id x y z vx vy vz
+restart     ${dts_res} dump/restart/restart.A.liggghts dump/restart/restart.B.liggghts 
+
+run ${dt_run}
+write_restart dump/restart/restart_finished.liggghts
