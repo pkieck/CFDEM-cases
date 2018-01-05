@@ -1,0 +1,16 @@
+fix  mesh all mesh/surface file                 pc25-100mm.stl &
+                           type                 2
+
+fix  case all wall/gran    model                hertz          &
+                           tangential           history        &
+                           rolling_friction     cdt            &
+                           mesh                                &
+                           n_meshes             1              &
+                           meshes               mesh
+
+fix  ypln all wall/gran    model                hertz          &
+                           tangential           history        &
+                           primitive                           &
+                           type                 2              &
+                           yplane               0
+
