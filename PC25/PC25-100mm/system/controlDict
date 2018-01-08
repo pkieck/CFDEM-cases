@@ -61,6 +61,8 @@ maxCo 1;
 
 //libs ( "libgroovyBC.so" "libfiniteVolumeCFDEM.so");
 
+OptimizationSwitches { fileHandler collated; }
+
 functions
 {
 #include "postProcessingDict"

@@ -5,10 +5,12 @@ variable dt     equal 1e-6
 variable dt_s	equal .02
 variable dt_r	equal .25
 variable dt_t   equal .001
+variable dt_avg equal .001
 
 variable saveI  equal ${dt_s}/${dt}
 variable saveR  equal ${dt_r}/${dt}
 variable saveT  equal ${dt_t}/${dt}
+variable dts_avg equal ${dt_avg}/${dt}
 variable t      equal dt*step
 
 atom_style      granular
@@ -42,6 +44,7 @@ fix             cfd2 all couple/cfd/force/implicit
 # apply nve integration to all particles that are inserted as single particles
 fix             integr  all nve/sphere
 fix             balance all balance 4000 xy 10 1.05
+include         analytics.lmp
 
 thermo_style    custom v_t step atoms ke
 thermo          ${saveT}

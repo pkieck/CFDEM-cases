@@ -17,14 +17,14 @@ FoamFile
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains  24;
+numberOfSubdomains  4;
 
 //- Keep owner and neighbour on same processor for faces in zones:
 // preserveFaceZones (heater solid1 solid3);
 
-method          scotch;
+// method          scotch;
 // method          hierarchical;
-// method          simple;
+method          simple;
 // method          metis;
 // method          manual;
 
