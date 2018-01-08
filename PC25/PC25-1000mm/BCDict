@@ -1,0 +1,21 @@
+startTime       0;
+endTime         13;
+deltaT          5e-5;
+writeInterval   0.25;
+purgeWrite      2;
+
+numberOfSubdomains  2;
+method          simple; //scotch;
+simpleCoeffs    { n (2 1 1); delta .001; }
+
+couplingInterval 50;
+smoothingL 5e-3;
+
+U		 8;
+k		 0.0558;
+epsilon		 2.05;
+U_nozzle	17.68;
+k_nozzle	 1.17;
+epsilon_nozzle 300.8;
+
+

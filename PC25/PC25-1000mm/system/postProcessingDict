@@ -1,0 +1,39 @@
+dp
+{
+    patch1          inlet;
+    patch2          outlet;
+
+    type            fieldValueDelta;
+    functionObjectLibs ("libfieldFunctionObjects.so");
+    operation       subtract;
+    enabled         true;
+    writeControl   adjustableRunTime;
+    writeInterval  .001;
+    log             false;
+    region1
+    {
+        regionType      patch;
+        name            $patch1;
+        type            surfaceFieldValue;
+        libs            ("libfieldFunctionObjects.so");
+        writeControl    timeStep;
+        writeInterval   1000000000000000000000000;
+        writeFields     false;
+        log             false;
+        operation       areaAverage;
+        fields          ( p );
+    }
+    region2
+    {
+        regionType      patch;
+        name            $patch2;
+        type            surfaceFieldValue;
+        libs            ("libfieldFunctionObjects.so");
+        writeControl    timeStep;
+        writeInterval   100000000000000000000;
+        writeFields     false;
+        log             false;
+        operation       areaAverage;
+        fields          ( p );
+    }
+}

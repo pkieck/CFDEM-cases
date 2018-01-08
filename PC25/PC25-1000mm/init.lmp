@@ -1,0 +1,80 @@
+variable        dt equal 2e-6
+variable        M equal 7.5
+
+echo            screen
+atom_style      granular
+atom_modify     map array
+communicate     single vel yes
+
+boundary        f f f
+newton          off
+units           si
+#processors      2 3 2
+
+region          reg block -0.145 0.145 &
+                          -0.05  0.600 &
+                          -0.001 1.051 &
+                          units  box
+create_box      2 reg
+
+include         matprops.lmp
+
+neighbor        ${dp} bin
+neigh_modify    delay 0
+
+
+# timestep, gravity
+timestep        ${dt}
+fix             gravi all gravity 9.81 vector 0. -1. 0.
+
+# walls
+include         geometry.lmp
+# particle distributions and insertion, large numbers are primes used for RNG startup
+region          bc block -0.145 0.145 &
+                          0.2   0.3   &
+                          0     1     &
+                         units  box
+
+fix             pts1 all particletemplate/sphere 67867979                  &
+                                                 atom_type 1               &
+                                                 density constant ${rhop}  &
+                                                 radius  constant ${rp}
+fix             pdd1 all particledistribution/discrete 15485863 1 pts1 1.0
+fix             ins  all insert/pack             seed 86028157             &
+                                                 distributiontemplate pdd1 &
+                                                 vel    constant 0. -.5 0. &
+                                                 insert_every         once &
+                                                 overlapcheck         yes  &
+                                                 all_in               yes  &
+                                                 mass_in_region       ${M} &
+                                                 region bc
+region  ZRSi block     ${XminZRS} ${XmaxZRS}  &
+                       ${YminZRS} ${YmaxZRS}  &
+                       ${ZminZRS} ${ZmaxZRS}
+
+fix             ZRS all insert/pack              seed 86028157             &
+                                                 distributiontemplate pdd1 &
+                                                 vel     constant 0. 0. 0. &
+                                                 insert_every         once &
+                                                 overlapcheck         yes  &
+                                                 all_in               yes  &
+                                                 mass_in_region       .2   &
+                                                 region ZRSi
+
+# apply nve integration to all particles that are inserted as single particles
+fix             integr all nve/sphere
+
+# screen output
+thermo_style    custom step atoms ke
+thermo          5000
+thermo_modify   lost ignore norm no
+
+# insert the first particles so that dump is not empty
+run             1
+unfix ins
+unfix ZRS
+
+shell           mkdir dump
+shell           mkdir dump/restart
+reset_timestep  0
+write_restart   dump/restart/restart.0.liggghts

@@ -1,0 +1,83 @@
+shell           mkdir logs
+log             logs/liggghts
+
+variable Mdot   equal .75 # kg/s
+
+
+variable dt     equal 1e-6
+variable dt_s	equal .02
+variable dt_r	equal .25
+variable dt_t   equal .001
+variable dt_avg equal .001
+
+variable saveI  equal ${dt_s}/${dt}
+variable saveR  equal ${dt_r}/${dt}
+variable saveT  equal ${dt_t}/${dt}
+variable dts_avg equal ${dt_avg}/${dt}
+variable t      equal dt*step
+
+atom_style      granular
+atom_modify     map array
+communicate     single vel yes
+
+boundary        f f f
+newton          off
+
+units           si
+processors      1 1 2
+
+# read the restart file
+read_restart    dump/restart/restart.0.liggghts
+
+include	        matprops.lmp
+neighbor        ${dp} bin
+neigh_modify    delay 0
+
+# timestep, gravity
+timestep        ${dt}
+fix	            gravi all gravity 9.81 vector 0. -1. 0.
+
+# walls
+include         geometry.lmp
+
+variable vZRS   equal (v_ZmaxZRS-v_ZminZRS)*v_Mdot/(mass(all,ZRS)+.0001)
+fix             sc all speedcontrol  NULL NULL v_vZRS gain 1. region ZRS
+
+
+fix             pts1 all particletemplate/sphere 67867979                  &
+                                                 atom_type 1               &
+                                                 density constant ${rhop}  &
+                                                 radius  constant ${rp}
+fix             pdd1 all particledistribution/discrete 15485863 1 pts1 1.0
+fix             feed all insert/rate/region                                  &
+                                        seed                 86028157        &
+                                        distributiontemplate pdd1            &
+                                        mass                 INF             &
+                                        massrate             ${Mdot}         &
+                                        insert_every         2000            &
+                                        overlapcheck         yes             &
+                                        all_in               yes             &
+                                        vel                  constant 0 0 0  &
+                                        region               feed            &
+                                        ntry_mc              10000
+
+
+# cfd coupling
+fix             cfd1 all couple/cfd                 couple_every 50 mpi
+fix             cfd2 all couple/cfd/force/implicit
+
+# apply nve integration to all particles that are inserted as single particles
+fix             integr  all nve/sphere
+fix             balance all balance 4000 xy 10 1.05
+include         analytics.lmp
+
+thermo_style    custom v_t step atoms ke
+thermo          ${saveT}
+thermo_modify   lost ignore norm no
+
+dump            dmp all  custom/vtk ${saveI} dump/dump.*.vtp id x y z vx vy vz
+dump_modify     dmp binary yes
+
+restart		    ${saveR} dump/restart/restart.A dump/restart/restart.B
+
+run             0

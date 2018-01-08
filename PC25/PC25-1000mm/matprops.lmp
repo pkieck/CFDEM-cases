@@ -1,0 +1,12 @@
+variable dp equal 1.8e-3
+variable rp equal ${dp}/2
+variable rhop equal 1040
+
+fix         m1 all property/global youngsModulus peratomtype 1.45e10 2.5e9
+fix         m2 all property/global poissonsRatio peratomtype .25 .25
+fix         m3 all property/global coefficientRestitution peratomtypepair 2 .75 .9 .9 .1
+fix         m4 all property/global coefficientFriction peratomtypepair 2 .5 .24 .24 .01
+fix         m5 all property/global coefficientRollingFriction peratomtypepair 2 .06 .05 .05 .01
+
+pair_style  gran model hertz tangential history rolling_friction cdt # history # Hertzian without cohesion
+pair_coeff  * *

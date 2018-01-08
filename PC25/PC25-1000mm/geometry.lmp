@@ -1,0 +1,32 @@
+fix  mesh all mesh/surface file                 pc25-1000mm.stl &
+                           type                 2
+
+fix  case all wall/gran    model                hertz           &
+                           tangential           history         &
+                           rolling_friction     cdt             &
+                           mesh                                 &
+                           n_meshes             1               &
+                           meshes               mesh
+
+fix  ypln all wall/gran    model                hertz           &
+                           tangential           history         &
+                           primitive                            &
+                           type                 2               &
+                           yplane               0
+
+
+variable XminZRS equal -.035
+variable XmaxZRS equal  .035
+variable YminZRS equal  .0325
+variable YmaxZRS equal  .0675
+variable ZminZRS equal 1.0025
+variable ZmaxZRS equal 1.05
+
+region  ZRS  block     -1         1           &
+                       -1         1           &
+                       ${ZminZRS} ${ZmaxZRS}
+region  feed block     -0.04      0.04        &
+                        0.        0.04        &
+                        0.2       0.3
+
+
